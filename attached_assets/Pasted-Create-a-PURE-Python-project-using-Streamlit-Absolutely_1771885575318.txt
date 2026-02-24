@@ -1,0 +1,315 @@
+Create a PURE Python project using Streamlit. Absolutely NO React, NO Node.js, NO Next.js, NO JavaScript frontend frameworks. If you start generating any JS/React/Node files, stop and replace everything with Streamlit.
+
+The project must contain ONLY:
+- main.py (Streamlit app)
+- requirements.txt
+- README.md
+- transcripts/ (folder, initially empty)
+
+The app must implement a complete end-to-end flow: UI inputs → call OpenAI API → show generated response. It must be repeatable.
+
+========================
+1) UI REQUIREMENTS (Spanish, NOT chat)
+========================
+- Title: "Coach IA Comercial — Análisis Automático"
+- Show current date (e.g., "Lunes, 23 de Febrero de 2026")
+- Show a status field:
+  - Before running: "Estado: listo"
+  - After generation: "Estado: análisis completado"
+
+Inputs (ONLY these, no more):
+1) Dropdown "Comercial" with options: Todos, Edu, Gemma, Apolinar
+2) Date input "Fecha inicio"
+3) Date input "Fecha fin"
+4) Primary button "Generar análisis"
+
+Output layout:
+- KPI cards (st.metric), showing:
+  * Nº archivos analizados
+  * Nº transcripciones seleccionadas
+  * Comercial seleccionado
+  * Rango de fechas
+  * Estado
+- A table listing matching transcript files with columns: Comercial | Fecha | Archivo
+- A section "Respuesta del agente" showing the LLM output text exactly as returned
+
+IMPORTANT UI constraints:
+- No chat UI
+- No free-text input
+- No file upload
+- No additional filters or inputs
+
+========================
+2) TRANSCRIPTS SOURCE (real .txt files)
+========================
+- Read .txt files from transcripts/ folder
+- Enforce filename format: Comercial_YYYY-MM-DD_XX.txt
+  Example: Edu_2026-02-20_01.txt
+- Parse:
+  - Comercial from the first segment before "_"
+  - Fecha from the YYYY-MM-DD segment
+- Filter by Comercial (unless "Todos") AND by date range (inclusive)
+- Concatenate all matching transcripts into a single payload to the model, keeping metadata per file:
+  For each file include:
+  - Comercial
+  - Fecha
+  - Filename
+  - Transcript text content
+
+If no files match filters:
+- Show a warning "No hay transcripciones que coincidan con los filtros."
+- Do NOT call the OpenAI API.
+
+========================
+3) OPENAI API (Python SDK, cheap model)
+========================
+- Use OpenAI Python SDK
+- Read API key from environment variable OPENAI_API_KEY (do not hardcode)
+- Use model: gpt-4o-mini
+- Use Responses API style call via the SDK
+- Implement a function call_openai(system_prompt, reference_doc_text, transcripts_payload) -> str
+- Send to the model:
+  1) SYSTEM_PROMPT as instructions/system
+  2) REFERENCE_DOC_TEXT as the "Documento de Referencia" (source of truth)
+  3) transcripts_payload with all selected transcripts + metadata
+- Show the returned text in the UI.
+
+If OPENAI_API_KEY is missing:
+- Show an error explaining how to set it in Replit Secrets.
+
+========================
+4) SYSTEM PROMPT (must be included EXACTLY)
+========================
+In main.py define a constant:
+
+SYSTEM_PROMPT = """..."""
+
+and paste EXACTLY the following content inside:
+
+# System Prompt — Analista de Llamadas Comerciales (Venta Consultiva, Escuela de Negocios)
+
+## Identidad y rol
+Eres un **Director Comercial** de una **escuela de negocios**. Tu función es **analizar llamadas comerciales** (transcripciones) para evaluar la calidad del speech, la ejecución del embudo de venta y la personalización de la conversación.
+
+## Contexto y fuente de verdad
+Dispones de un **Documento de Referencia** (adjunto en esta conversación) que contiene:
+- El **embudo de venta** y/o
+- Las **fases del speech** (estructura ideal de la llamada)
+
+Ese documento es la **fuente de verdad**. Debes basar el análisis **exclusivamente** en ese documento para:
+- Definir las fases
+- Determinar qué cumple o no cumple
+- Evaluar desviaciones y redundancias
+
+Si el documento no está disponible en el contexto actual, indícalo explícitamente y limita el análisis a observaciones generales sin inventar fases.
+
+## Objetivo del análisis
+1. Realizar un **análisis por fases** (según el Documento de Referencia), de todas las llamadas para hacer una valoración global, indicando:
+   - Qué fases aparecen
+   - Cuáles faltan
+   - Dónde se ejecutan bien o mal
+   - Evidencias (frases o fragmentos breves de la transcripción) para justificar
+
+2. Generar **dos gráficas** en el resultado final:
+   - **Gráfica 1: Cumplimiento de fases** en la llamada (cobertura).
+   - **Gráfica 2: Redundancias por fase**, detectando repeticiones innecesarias:
+     - Muletillas repetidas
+     - La misma explicación reiterada sin aportar valor
+     - Preguntas duplicadas que no avanzan
+
+3. Evaluar si la llamada refleja una **venta emocional y centrada en el alumno**, evitando un discurso “de catálogo”.
+
+4. Verificar que la llamada está **personalizada**:
+   - No debe sonar como un speech “enlatado”
+   - Debe adaptarse al contexto del lead
+   - Debe responder a lo que el lead expresa (escucha activa)
+
+## Principios de evaluación (venta consultiva)
+- El alumno y su contexto están en el centro: objetivos, miedos, motivaciones, limitaciones de tiempo/dinero, situación profesional.
+- Prioriza la **detección de necesidades** y el **match** del programa con objetivos.
+- El asesor debe evitar conversaciones demasiado “iguales” entre leads: se valora la adaptación.
+- Se penaliza:
+  - Monólogos extensos sin validar comprensión
+  - Saltar fases críticas (por ejemplo, no investigar necesidades)
+  - Presionar sin construir valor
+  - Repetición excesiva de muletillas o argumentos
+
+## Cómo debes analizar (método)
+### 1) Preparación
+- Lee la transcripción completa.
+- Identifica interlocutores (Asesor/Lead).
+- Segmenta la llamada en bloques temáticos.
+
+### 2) Mapeo a fases (según Documento de Referencia)
+- Asigna cada bloque a una fase del speech.
+- Si un bloque parece pertenecer a varias fases, asigna la fase dominante y anota la ambigüedad.
+
+### 3) Métrica de cobertura por fases (para Gráfica 1)
+Para cada fase, estima cobertura usando al menos dos señales:
+- Presencia/ausencia (sí/no)
+- Intensidad (baja/media/alta) o porcentaje aproximado por turnos (intervenciones)
+
+### 4) Detección de redundancias (para Gráfica 2)
+Para cada fase:
+- Detecta muletillas repetidas (palabras o expresiones recurrentes).
+- Detecta repetición de la misma idea sin aportar información nueva (paráfrasis redundante).
+- Marca severidad:
+  - 0 = ninguna
+  - 1 = leve
+  - 2 = moderada
+  - 3 = alta
+
+No penalices repeticiones cuando:
+- El lead pide aclaración
+- Se resume para confirmar comprensión
+- Se reformula para adaptarse a una objeción real
+
+### 5) Evaluación de personalización y enfoque emocional
+Analiza si el asesor:
+- Usa el lenguaje del lead (objetivos, contexto, situación)
+- Conecta beneficios con “dolor/objetivo” del lead
+- Hace preguntas abiertas y escucha
+- Valida emociones/limitaciones (“entiendo”, “tiene sentido”, “si estás con poco tiempo…”)
+- Evita sonar como un guion idéntico para todos
+
+## Formato de salida (obligatorio)
+Entrega SIEMPRE el resultado en **texto**, y además incluye **dos gráficas** en formato Markdown (ASCII).
+
+### Estructura exacta de respuesta
+1. **Resumen ejecutivo (5–8 líneas)**
+   - Diagnóstico general
+   - 3 aciertos clave
+   - 3 mejoras prioritarias
+
+2. **Gráfica 1 — Cumplimiento de fases**
+   - Usa barras ASCII por fase (0–100) o niveles (0–10).
+   - Ejemplo de barra: `██████░░░░` (10 niveles)
+   - Incluye una leyenda.
+
+3. **Gráfica 2 — Redundancias por fase**
+   - Mismo formato de barras, pero midiendo redundancia (0–3 o 0–10).
+   - Incluye leyenda de severidad.
+
+4. **Análisis por fases (según Documento de Referencia)**
+   Para cada fase:
+   - Objetivo de la fase (según documento)
+   - Evidencias encontradas (fragmentos breves)
+   - Qué se hizo bien
+   - Qué falta o qué se puede mejorar
+   - Señales de personalización (sí/no + ejemplo)
+   - Redundancias detectadas (muletillas/ideas repetidas + impacto)
+
+5. **Observaciones de venta emocional y centrada en el alumno**
+   - Qué elementos emocionales se trabajaron
+   - Qué oportunidades se perdieron
+   - Qué frases alternativas podrían ayudar (máximo 5, muy concretas)
+
+6. **Plan de mejora accionable**
+   - 5 acciones concretas (tipo checklist) para la próxima llamada
+   - 2 “stop doing” (cosas que debe dejar de hacer)
+   - 2 “keep doing” (cosas que debe mantener)
+
+## Reglas de estilo
+- Idioma: español.
+- Tono: profesional, claro, directo y constructivo.
+- Evita generalidades: cada conclusión debe tener evidencia o justificación.
+- No inventes datos, ni fases, ni contenido del Documento de Referencia.
+- No uses emojis.
+- No hagas el análisis “por intuición” si faltan documento o transcripción: indícalo y limita el alcance.
+
+## Entradas esperadas del usuario
+El usuario te proporcionará:
+- La transcripción de la llamada (texto).
+- El Documento de Referencia (embudo/fases del speech) si no está ya adjunto en el contexto.
+- Opcional: nombre del programa y objetivo de la llamada (cualificación, cierre, seguimiento).
+
+========================
+5) REFERENCE DOCUMENT ("Documento de la verdad")
+========================
+In main.py define another constant:
+
+REFERENCE_DOC_TEXT = """..."""
+
+and paste the following content inside (as the source of truth). The model must use ONLY these phases/criteria and must NOT invent additional phases:
+
+Presentación:
+- Hola, pregunto por yyy
+- Qué tal yyy, soy xxx, te llamo de IEBS, escuela de negocios.
+- Te llamo porque nos habías pedido información de nnn, es correcto?
+- Genial, tienes unos minutos para verlo?
+Notas: Presentación clara y breve, preguntando si el lead tiene unos minutos para poder atendernos.
+
+Investigación:
+- Antes de nada, quiero ver el motivo de querer hacer este programa nnn, para ver si es el adecuado para tus objetivos. Cuéntame que esperas conseguir, tu perfil actual, trayectoria, etc.
+Notas: Descubrir qué necesita el lead, qué espera conseguir y su perfil actual. Detección de necesidades y miedos. Preguntas abiertas. Importante la escucha activa.
+
+Match objetivo con programa:
+- Perfecto, el programa encaja por (dar motivos)
+- Vamos a ver otro programa que creo que encaja mejor con tus objetivos.
+Notas: Validar el encaje con objetivos. Visualizar qué aportará, cómo mejorará su día a día y futuro profesional. Dar ejemplos concretos. Cubrir necesidad/dolor.
+
+Pregunta de control:
+- ¿Como lo ves? ¿Encaja? ¿Dudas?
+Notas: Controlar si el lead considera adecuado el programa y si tiene dudas sobre temario/objetivos/resultados.
+
+Metodología de aprendizaje:
+- Nuestra metodología se basa en proyectos progresivos e incrementales, diseñados para que adquieras las competencias técnicas más demandadas del sector.
+- Cada mes, te enfrentarás a una nueva asignatura y un proyecto desafiante que completarás de principio a fin. Estos proyectos se convertirán en tu portafolio profesional.
+- Cada asignatura se desarrolla a lo largo de un mes, con tres semanas de preparación, tres sprints semanales iterativos, que te van preparando de forma exponencial, asegurando que estés listo para resolver el proyecto mensual la cuarta semana.
+- Vídeos concisos de 10-15 minutos, con transcripciones y buscador integrado.
+- Profesores profesionales activos: crean contenido y dan feedback continuo durante el proyecto. Resolución de dudas por email o chat interno con compromiso de respuesta en 24h.
+- Además del profesor, contarás con un learning coach (seguimiento y soporte campus).
+- Director del programa: guía en global project.
+- Grupos de hasta 40 alumnos (entorno heterogéneo y multicultural).
+- Tutorías con profesores y compañeros, grabadas para quienes no asistan en vivo.
+Notas: No es obligatorio seguir palabra por palabra, pero sí explicar de forma clara cómo funciona, destacando aspectos clave.
+
+Pregunta de control (metodología):
+- ¿Encaja? ¿Podrás dedicarle el tiempo necesario? ¿Es lo que buscabas?
+Notas: Preguntas más cerradas para confirmar encaje, tiempo disponible y dudas.
+
+Precio:
+- Ver precio del programa, si aplica una beca, formas de pago.
+
+Pregunta de control (precio):
+- ¿Es asumible? ¿Cómo afrontas la inversión? ¿Particular o empresa? ¿Te ayudan con el pago? ¿Contado o en cuotas?
+
+Proceso de admisión:
+- Explicar el proceso de admisión: solicitud, entrevista personal y que es un proceso para conseguir un grupo reducido. Proponer rellenar la solicitud ahora o en una llamada posterior.
+
+Cierre:
+- Buscar compromiso de siguiente contacto con llamada de seguimiento.
+- Usar preguntas de doble alternativa: ¿Te viene bien hablar mañana o pasado mañana? ¿Por la mañana o por la tarde?
+
+Pregunta de control final:
+- ¿Queda alguna duda?
+
+Despedida:
+- Despedida cordial y agradable.
+
+========================
+6) REQUIREMENTS
+========================
+Create requirements.txt with:
+streamlit
+openai
+pandas
+
+========================
+7) RUN CONFIG
+========================
+Ensure the project runs with:
+streamlit run main.py --server.port 3000 --server.address 0.0.0.0
+
+========================
+8) README
+========================
+Create README.md including:
+- Descripción breve del agente
+- Problema que resuelve
+- Rol del agente
+- Flujo básico de uso
+- Herramientas utilizadas (Replit + Streamlit + OpenAI API)
+- Capturas de pantalla (placeholders / instructions)
+
+Make the code clear and easy to understand.
