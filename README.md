@@ -285,3 +285,20 @@ Sin embargo, el prototipo también muestra limitaciones propias de un MVP:
 - Ausencia de almacenamiento histórico de resultados
 
 Estas limitaciones forman parte natural de una primera iteración y abren el camino a futuras evoluciones del sistema.
+
+Añado instrucciones por si se quiere ejecutar el agente: 
+## Ejecutar el prototipo localmente
+
+Para ejecutar la aplicación:
+
+1. Instalar dependencias:
+
+pip install -r requirements.txt
+
+2. Definir la variable de entorno:
+
+OPENAI_API_KEY
+
+3. Ejecutar la aplicación:
+
+streamlit run main.py
