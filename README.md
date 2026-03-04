@@ -170,3 +170,118 @@ Sprint 3 — Prototipo funcional
 Cumple el flujo completo:
 
 Input → Procesamiento → Respuesta dinámica visible
+
+## Tipo de usuario
+
+El agente está pensado principalmente para ser utilizado por perfiles responsables de supervisión comercial, como:
+
+- Directores comerciales
+- Responsables de equipos de ventas
+- Formadores comerciales
+- Dirección académica en escuelas de negocio
+
+Su función es facilitar el análisis estructurado de llamadas comerciales para mejorar la calidad del proceso de venta consultiva.
+
+---
+
+## Situación de uso
+
+El agente se utiliza en contextos de supervisión y mejora del rendimiento comercial.
+
+Algunos escenarios de uso típicos son:
+
+- Auditoría periódica de llamadas comerciales
+- Evaluación del cumplimiento del speech de ventas
+- Identificación de desviaciones en el proceso consultivo
+- Preparación de feedback individual para comerciales
+- Detección temprana de patrones de bajo rendimiento
+
+El sistema permite analizar múltiples llamadas de forma rápida, algo que sería difícil de realizar manualmente.
+
+---
+
+## Cómo funciona el agente
+
+El agente funciona a partir del análisis automático de transcripciones de llamadas comerciales.
+
+El flujo general es el siguiente:
+
+1. El usuario selecciona un comercial y un rango de fechas.
+2. La aplicación filtra las transcripciones disponibles.
+3. Las transcripciones se envían junto con el Documento de Referencia al modelo de lenguaje.
+4. El modelo analiza el contenido siguiendo el system prompt definido.
+5. Se genera un informe estructurado que incluye:
+   - resumen ejecutivo
+   - análisis por fases del speech
+   - detección de redundancias
+   - evaluación de venta emocional
+   - plan de mejora accionable
+
+El análisis se muestra directamente en la interfaz de la aplicación.
+
+---
+
+## Evolución futura del agente
+
+Este prototipo representa un primer MVP funcional. Existen múltiples mejoras que podrían implementarse en futuras iteraciones.
+
+### Integración con API de Aircall
+
+La evolución natural del sistema sería conectarlo directamente con la API de Aircall para obtener automáticamente las transcripciones de las llamadas sin necesidad de descargarlas manualmente.
+
+Esto permitiría analizar llamadas en tiempo real o de forma periódica.
+
+---
+
+### Base de conocimiento de programas mediante Airtable
+
+Otra mejora relevante sería integrar una base de datos de programas formativos mediante Airtable.
+
+Esto permitiría que el agente evaluara no solo la ejecución del speech comercial, sino también si el programa ofrecido realmente encaja con el perfil y los objetivos del lead.
+
+De esta forma el análisis pasaría de evaluar únicamente el **cómo se vende** a evaluar también **qué se está vendiendo**.
+
+---
+
+### Dashboard histórico de desempeño comercial
+
+Almacenar los resultados de los análisis permitiría construir un dashboard con información histórica sobre el desempeño del equipo comercial.
+
+Esto facilitaría:
+
+- detectar tendencias
+- comparar comerciales
+- identificar mejores prácticas
+- realizar seguimiento de mejoras en el speech.
+
+---
+
+### Envío automático de informes
+
+Otra posible evolución sería generar informes automáticos que se envíen periódicamente al Director Comercial por email, facilitando la supervisión continua del equipo.
+
+---
+
+### Comparativa entre comerciales
+
+El sistema podría incorporar análisis comparativos entre comerciales para detectar diferencias en la ejecución del speech y facilitar la identificación de mejores prácticas dentro del equipo.
+
+---
+
+## Análisis crítico del prototipo
+
+Este proyecto demuestra que es posible automatizar el análisis cualitativo de llamadas comerciales mediante modelos de lenguaje.
+
+El prototipo valida varios aspectos clave:
+
+- Los modelos de lenguaje pueden analizar conversaciones complejas siguiendo reglas definidas.
+- Es posible estructurar el análisis de llamadas comerciales en un informe accionable.
+- Un system prompt bien diseñado permite convertir un concepto conceptual en una herramienta funcional.
+
+Sin embargo, el prototipo también muestra limitaciones propias de un MVP:
+
+- Dependencia de transcripciones manuales
+- Interfaz básica centrada en funcionalidad
+- Ausencia de almacenamiento histórico de resultados
+
+Estas limitaciones forman parte natural de una primera iteración y abren el camino a futuras evoluciones del sistema.
