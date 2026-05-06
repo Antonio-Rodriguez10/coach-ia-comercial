@@ -452,25 +452,25 @@ El agente puede adaptarse a cualquier contexto de venta consultiva incorporando 
 
 Header con fecha y estado del sistema, filtros de comercial y fechas, y KPIs del análisis: llamadas analizadas, descartadas, comercial, período y hora de generación.
 
-![Parámetros y KPIs](docs/screenshots/01_parametros_kpis.png)
+![Parámetros y KPIs](docs/01_parametros_kpis.png)
 
 ### Transcripciones incluidas en el análisis
 
 Tabla expandible con el detalle de cada transcripción procesada: comercial, fecha y nombre de archivo.
 
-![Transcripciones y cabecera del informe](docs/screenshots/02_transcripciones_informe.png)
+![Transcripciones y cabecera del informe](docs/02_transcripciones_informe.png)
 
 ### Resumen ejecutivo e informe por fases
 
 El agente genera un resumen con diagnóstico general, 3 aciertos clave y 3 mejoras prioritarias, seguido de gráficas ASCII de cumplimiento de fases y redundancias.
 
-![Resumen ejecutivo](docs/screenshots/03_resumen_ejecutivo.png)
+![Resumen ejecutivo](docs/03_resumen_ejecutivo.png)
 
 ### Plan de mejora accionable
 
 Sección final del informe con observaciones de venta emocional, frases alternativas concretas, 5 acciones para la próxima llamada y bloques Stop Doing / Keep Doing.
 
-![Plan de mejora accionable](docs/screenshots/04_plan_mejora.png)
+![Plan de mejora accionable](docs/04_plan_mejora.png)
 
 ---
 
